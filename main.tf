@@ -96,3 +96,36 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
 }
+
+resource "aws_security_group" "web_sg" {
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "web-security-group"
+  }
+}
+
+resource "aws_instance" "web_server" {
+  ami             = "ami-0c55b159cbfafe1f0"
+  instance_type   = var.instance_type
+  subnet_id       = aws_subnet.public[0].id
+  security_groups = [aws_security_group.web_sg.name]
+
+  tags = {
+    Name = "web-server"
+  }
+}
